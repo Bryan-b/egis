@@ -6,21 +6,54 @@ const categories = db.categories;
 
 // Find All Categories
 exports.findCategories = async (req, res) => {
-  await categories.findAll({attributes: {exclude: ['hierarchy_level']},hierarchy: true})
-    .then((categories) => {
+  try{
+    await categories.findAll({attributes: {exclude: ['hierarchy_level']},hierarchy: true})
+      .then(categories => {
         return res.status(200).send({
-          message: "Fetched successfully",
+          errror : false,
+          message: "categories fetched successfully",
           data: categories
         });
-      })
-      .catch((err) => {
-        res.status(500).send({
-          message: "an error occurred while finding categories.",
-          error : err
-        });
-      });
+      })  
+  }catch(error){
+    res.status(500).send({
+      error : true,
+      message: "an error occurred while finding categories.",
+    });  
+  }
 };
 
+
+// Find Subcategories By Parent Category id
+exports.findSubCategoriesById = async (req, res) => {
+  let id = req.params.id;
+  // validating
+  if (!id) return res.status(400).send({error : true, message : "category id required"});
+  if (isNaN(id)) return res.status(400).send({error : true, message : "invalid category id sent, expecting an integer"});
+
+  try{
+    // find query
+    await categories.findOne({
+      where: { id : id },
+      include: {
+        model: categories,
+        as: 'descendents',
+        hierarchy: true
+      }
+    }).then(categories => {
+      return res.status(200).send({
+        errror : false,
+        message: "categories fetched successfully",
+        data: categories
+      });
+    })
+  }catch(error){
+    res.status(500).send({
+      error : true,
+      message: "an error occurred while finding categories.",
+    });
+  }
+}
 
 
 
@@ -31,21 +64,28 @@ exports.findCategoriesByVisibilty = async (req, res) => {
   // CHECKING IS PARAMS VALUE IS VALID
   if(!isNaN(is_visible) && is_visible <= 1 || is_visible >= 0){
     // FIND CATEGORY BY VISIBILITY
-    await categories.findAll({where : {is_visible : is_visible}, attributes: {exclude: ['is_visible','hierarchy_level']},hierarchy: true})
-      .then((categories) => {
-        return res.status(200).send({
-          message: "Fetched successfully",
-          data: categories
-        });
-      })
-      .catch((err) => {
-        res.status(500).send({
-          message: "an error occurred while finding categories.",
-          error : err
-        });
+    try{
+
+      await categories.findAll({where : {is_visible : is_visible}, attributes: {exclude: ['is_visible','hierarchy_level']},hierarchy: true})
+        .then((categories) => {
+          return res.status(200).send({
+            error : false,
+            message: "Fetched successfully",
+            data: categories
+          });
+        })
+
+    }catch(error){
+
+      res.status(404).send({
+        error : false,
+        message: "can't find category list"
       });
+
+    }
   }else{
     return res.status(400).send({
+      error : false,
       message : "invalid visibility status sent, expecting '1' or '0'"
     })
   }
@@ -65,17 +105,14 @@ exports.createCategory = async (req, res) => {
         message : "category name required"
     })
   }
-
   // SETTING LEVEL ID TO "NULL IF NOT SET"
   level_id == "" || typeof level_id == "undefined" ? parent_id = null : parent_id = level_id;
-  
   // DECLARING CATEGORY DATA OBJECT
   let category_data = {
     name,
     parent_id
   }
   
-
   // CHECK IF THE CATEGORY IS EXISTING WITH SAME "NAME" AND "PARENT_ID"
   let is_exist = await categories.findOne({
     where: {
@@ -127,13 +164,13 @@ exports.createCategory = async (req, res) => {
 
 
 
-// Update Category By Id
+// Update Category Name By Id
 exports.updateCategory = async (req, res) => {
-  const {id, name, is_visible} = req.body;
+  const {id, name} = req.body;
 
   // CHECKING IF DATA EXIST OR NOT
   if(!id) return res.status(400).send({error : true, message : "id required"});
-  if (!name && !is_visible) return res.status(400).send({error : true, message : "name, visibility status or both required"});
+  if (!name) return res.status(400).send({error : true, message : "category new name required"});
   
   let updateData = {};
 
@@ -144,7 +181,7 @@ exports.updateCategory = async (req, res) => {
       message : "invalid catgeory id sent"
     })
   }
-  
+
   // CHECKING IF NAME EXIST
   if (name) {
     let check_name = await categories.findOne({
@@ -153,26 +190,19 @@ exports.updateCategory = async (req, res) => {
         parent_id : is_Available.parent_id
       }
     });
+
     if(check_name !== null){
       return res.status(400).send({
         error: true,
         message: "category name already exist in the same level"
       });
-    }
-    updateData.name = name;
-  }
-  
-  // CHECKING IS VISIBILITY EXISTS
-  if(is_visible != undefined){
-    if(!isNaN(is_visible) && is_visible <= 1 || is_visible >= 0){
-      // ASSIGNING AVAILABLE VALUES TO THE UPDATE OBJECT
-      updateData.is_visible = is_visible
-    }
-  }
+    }else{
+      updateData.name = name;
 
+    }
+  }
 
   try {
-    
     await categories.update(updateData, {
       where : {
         id : id
@@ -180,8 +210,7 @@ exports.updateCategory = async (req, res) => {
     }).then(data => {
       return res.status(200).send({
         error: false,
-        message: "category successfully updated",
-        data: data
+        message: "category successfully updated"
       });
     });
 
@@ -191,7 +220,83 @@ exports.updateCategory = async (req, res) => {
       message: "an error ocurred, please try again later"
     });
   }
+}
 
 
+exports.updateCategoryVisibility = async (req, res) => {
+  const {id, is_visible} = req.body;
+
+  // VALIDATION
+  if (!id) return res.status(400).send({ error: true, message: "id required" });
+  if (!is_visible) return res.status(400).send({ error: true, message: "visibility status required, expecting '1' or '0'" });
+  if(is_visible != 1 && is_visible != 0) return res.status(400).send({ error : true, message : "invalid visibility status sent, expecting '1' or '0'" });
+
+  let isCategoryExist = await categories.findOne({
+    where : {
+      id
+    }
+  });
+
+  if (isCategoryExist == null){
+    console.log(isCategoryExist)
+    return res.status(404).send({
+      error : true,
+      message : "category not found"
+    })
+
+  }else{
+
+    try {
+      // MAKE UPDATE
+      await categories.update({isVisible : is_visible}, {
+        where : {
+          id
+        }
+      }).then(data => {
+        return res.status(200).send({
+          error: false,
+          message: "category successfully updated"
+        });
+      });
   
+    }catch(error) {
+
+      return res.status(400).send({
+        error: true,
+        message: "an error occurred, please try again later"
+      });
+
+    }
+
+  }
+}
+
+
+
+// Delete Category By Id (one or more)
+exports.deleteCategoryById = async (req, res) => {
+  const {id} = req.body;
+  // VALIDATING
+  if(isNaN(id)) return res.status(400).send({error : true, message : "invalid category id sent, expecting an integer"})
+
+  try{
+    await categories.destroy({
+      where : {
+        id : id
+      }
+    }).then(resp => {
+      return res.status(200).send({
+        error : false,
+        message : "category successfully deleted",
+        data : resp
+      })
+    })
+  }catch(error){
+
+    return res.status(400).send({
+      error: true,
+      message: "an error occurred, please try again later"
+    });
+
+  }
 }

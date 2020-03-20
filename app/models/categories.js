@@ -13,6 +13,6 @@ module.exports = (sequelize, Sequelize) => {
         timestamps: false
       }
   );
-    Categories.isHierarchy();
+    Categories.isHierarchy({ onDelete: "CASCADE" });
     return Categories;
 };

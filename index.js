@@ -22,6 +22,9 @@ app.use(
 
 // ROUTES
 require("./app/routes/categories_route")(app);
+require("./app/routes/products_route")(app);
+
+
 
 app.get("/resync", function(req, res) {
   db.sequelize.authenticate().then(() => {
@@ -33,7 +36,7 @@ app.get("/resync", function(req, res) {
     }).catch((err) => {
       console.error("Unable to connect to the database:", err);
     });
-  db.sequelize.sync({
+  db.products.sync({
       force : true
   }).then(() => {
         // db.categories.create({

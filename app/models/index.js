@@ -13,8 +13,8 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
 // Models Import
+db.products = require("./products")(sequelize, Sequelize); // products models
 db.categories = require("./categories.js")(sequelize, Sequelize); // categories models
-db.errors = require("./errors.js")(sequelize, Sequelize); // errors models
 
 // // ASSOCIATION
 // db.users.hasMany(db.cards);
