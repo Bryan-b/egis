@@ -1,4 +1,4 @@
-const uniq = require("../utility")
+const util = require("../utility")
 module.exports = (sequelize, Sequelize) => {
   const Products = sequelize.define(
     "products",
@@ -45,7 +45,9 @@ module.exports = (sequelize, Sequelize) => {
 
   // Hooks to generate unique id before creation
   Products.beforeCreate(function(products, options) {
-    products.unique_id = uniq.uniq_id()
+    products.unique_id = util.uniqId("egis-");
+    products.price = util.trimInt(products.price);
+    products.quantity = util.trimNum(products.quantity)
   });
 
   return Products;

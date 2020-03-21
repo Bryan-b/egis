@@ -2,13 +2,14 @@ const express = require("express");
 const fileUpload = require("express-fileupload");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const dbc = require("./app/config/db.config.js");
+const path = require("path");
+const {PORT, ORIGIN} = require("./app/config");
 const db = require("./app/models");
 
 const app = express();
-const port = process.env.PORT || dbc.PORT;
+const port = process.env.PORT || PORT;
 var corsOption = {
-  origin: dbc.ORIGIN
+  origin: ORIGIN
 };
 
 app.use(fileUpload());
@@ -19,6 +20,7 @@ app.use(
     extended: true
   })
 );
+app.use( express.static(path.join(__dirname, "app/files")));
 
 // ROUTES
 require("./app/routes/categories_route")(app);
@@ -43,12 +45,13 @@ app.get("/resync", function(req, res) {
         //     name : "swimming",
         //     parent_id : 1
         // })
-      console.log("Connected To Server and Synced");
-  })
-});
-
-app.listen(port, () => {
-  console.log("connected to server");
-});
+        console.log("Connected To Server and Synced");
+      })
+    });
+    
+  app.listen(port, () => {
+      // console.log(__dirname)
+    console.log("connected to server");
+  });
 
 module.exports = app;

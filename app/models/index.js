@@ -1,6 +1,7 @@
-const dbc = require("../config/db.config"); //database configuration
+const dbc = require("../config"); //database configuration
 const Sequelize = require("sequelize");
 require("sequelize-hierarchy")(Sequelize);
+
 // Sequelize Initialization
 const sequelize = new Sequelize(dbc.DB, dbc.USER, dbc.PASSWORD, {
   host: dbc.HOST,

@@ -1,4 +1,5 @@
 const db = require("../models");
+const util = require("../utility")
 const categories = db.categories;
 
 
@@ -26,7 +27,7 @@ exports.findCategories = async (req, res) => {
 
 // Find Subcategories By Parent Category id
 exports.findSubCategoriesById = async (req, res) => {
-  let id = req.params.id;
+  let id = util.sanitize(req.params.id);
   // validating
   if (!id) return res.status(400).send({error : true, message : "category id required"});
   if (isNaN(id)) return res.status(400).send({error : true, message : "invalid category id sent, expecting an integer"});
@@ -60,7 +61,7 @@ exports.findSubCategoriesById = async (req, res) => {
 // Find Category By Visibility
 exports.findCategoriesByVisibilty = async (req, res) => {
 
-  let is_visible = req.params.is_visible;
+  let is_visible = util.sanitize(req.params.is_visible);
   // CHECKING IS PARAMS VALUE IS VALID
   if(!isNaN(is_visible) && is_visible <= 1 || is_visible >= 0){
     // FIND CATEGORY BY VISIBILITY
@@ -109,8 +110,8 @@ exports.createCategory = async (req, res) => {
   level_id == "" || typeof level_id == "undefined" ? parent_id = null : parent_id = level_id;
   // DECLARING CATEGORY DATA OBJECT
   let category_data = {
-    name,
-    parent_id
+    name : util.sanitize(name),
+    parent_id : parent_id
   }
   
   // CHECK IF THE CATEGORY IS EXISTING WITH SAME "NAME" AND "PARENT_ID"
@@ -166,7 +167,8 @@ exports.createCategory = async (req, res) => {
 
 // Update Category Name By Id
 exports.updateCategory = async (req, res) => {
-  const {id, name} = req.body;
+  const id = req.body.id;
+  const name = util.sanitize(req.body.name);
 
   // CHECKING IF DATA EXIST OR NOT
   if(!id) return res.status(400).send({error : true, message : "id required"});
