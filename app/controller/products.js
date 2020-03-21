@@ -34,39 +34,46 @@ exports.createProduct = async (req, res) => {
       total_rated_users
     } = req.body;
 
-    const image_file = req.files.image_file;
-
-
-
+    
     // validation
+    // image file validation
+    if(util.isntOrEmpty(req.files)) return res.status(400).send({error : true, message : "product image required"});
+    const image_file = req.files.image_file;
+    if(util.isntOrNotImage(image_file)) return res.status(400).send({error : true, message : "selected image(s) contains invalid file type"});
+    
     // if(util.isntOrEmpty(name)) return res.status(400).send({error : true, message : "product name required"});
     // if(!price || isNaN(price) || price == "") return res.status(400).send({error : true, message : "product price required, expecting an integer value"});
     // if(!quantity || isNaN(quantity) || quantity == "") return res.status(400).send({error : true, message : "product quantity required, expecting an integer value"});
     // if(!category || isNaN(category) || category == "") return res.status(400).send({error : true, message : "product category required, expecting an integer value"});
     // if(!brand || isNaN(brand) || brand == "") return res.status(400).send({error : true, message : "product brand required, expecting an integer value"});
-    if(util.isntOrNotImage(image_file)) return res.status(400).send({error : true, message : "product image required"});
     // if(!mini_desc ) return res.status(400).send({error : true, message : "product mini description required"});
     // if(!full_desc) return res.status(400).send({error : true, message : "product full desc required"});
     // if(!quantity || isNaN(quantity)) return res.status(400).send({error : true, message : "product quantity required, expecting an integer value"});
 
     
     let image_file_length = image_file.length;
-
+    let image_array = [];
     if (image_file_length == undefined){
-        let newName = Date.now() + "_egis_" + image_file.name;
-        image_file.mv("./app/files/images/" + newName, (reject) => {
-            
-        })
-
-        console.log(ORIGIN + "/images" + "/" + newName);
+        image_file.name = "." + image_file.name.split(".").slice(-1)[0];
+        let newName = Date.now() + "_egis_product" + image_file.name;
+        image_file.mv("./app/files/images/" + newName)
+        let image_url = ORIGIN + "/images" + "/" + newName
+        image_array.push({
+            image_url
+        });
+        console.log(image_url);
+        console.log(image_array);
     }else{
         image_file.map(one_file => {
-            let newName = Date.now() + "_egis_" + one_file.name;
-            one_file.mv(`./app/files/images/` + newName, (reject) => {
-                
-            })
-            console.log(ORIGIN + "/images" + "/" + newName);
-
+            one_file.name = "." + one_file.name.split(".").slice(-1)[0];
+            let newName = Date.now() + "_egis_product" + one_file.name.replace(" ","");
+            one_file.mv(`./app/files/images/` + newName)
+            let image_url = ORIGIN + "/images" + "/" + newName
+            image_array.push({
+              image_url
+            });
+            console.log(image_url);
+            console.log(image_array);
         })
     }
 

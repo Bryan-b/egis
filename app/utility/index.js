@@ -47,17 +47,30 @@ exports.isntOrEmpty = data => {
 }
 
 // check for image types
-exports.isntOrNotImage = data => {
-  
-  console.log(data)
-  if(data.length == undefined){
-    
+exports.isntOrNotImage = (data, allow = []) => {
+  let types = ["image/gif", "image/jpeg", "image/png"];
+  let allow_types;
+  allow && allow.length != 0 ? allow_types = allow : allow_types = types; 
+  if(data !== null){
+    console.log(data.length)
+    if(data.length == undefined){
+      if (allow_types.includes(data.mimetype)) {
+          return false;
+      } else {
+          return true;
+      }
+    }else{
+      data.map(file => {
+        console.log(file.mimetype)
+          if (allow_types.includes(file.mimetype)) {
+            return false;
+          }else{
+            return true;
+          }
+      })
+
+    }
+  }else{
+    return true;
   }
-  // let mime_type = data.mimetype;
-  // let allow_types = ["image/gif", "image/jpeg", "image/png"];
-  // if (allow_types.includes(mime_type)) {
-  //   return false;
-  // }else{
-  //   return true;
-  // }
 }
