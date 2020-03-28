@@ -14,11 +14,12 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
 // Models Import
+db.product_images = require("./product_images")(sequelize, Sequelize); // product images models
 db.products = require("./products")(sequelize, Sequelize); // products models
 db.categories = require("./categories.js")(sequelize, Sequelize); // categories models
 
 // // ASSOCIATION
-// db.users.hasMany(db.cards);
-// db.cards.belongsTo(db.users, { foreignKey: "user_id" });
+db.products.hasMany(db.product_images);
+db.product_images.belongsTo(db.products);
 
 module.exports = db;

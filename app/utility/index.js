@@ -46,31 +46,50 @@ exports.isntOrEmpty = data => {
   }
 }
 
+// check if data does not exist, empty or not a number
+exports.isntOrEmptyOrNaN = (data) => {
+  if (!data || data == "" || isNaN(data)) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 // check for image types
 exports.isntOrNotImage = (data, allow = []) => {
-  let types = ["image/gif", "image/jpeg", "image/png"];
+  let types = ["image/jpeg", "image/png"];
   let allow_types;
   allow && allow.length != 0 ? allow_types = allow : allow_types = types; 
   if(data !== null){
-    console.log(data.length)
     if(data.length == undefined){
       if (allow_types.includes(data.mimetype)) {
-          return false;
+          return {
+            error : false
+          }
       } else {
-          return true;
+          return {
+            error : true,
+            message : `invalid file type of ${data.name}`
+          }
       }
     }else{
-      data.map(file => {
-        console.log(file.mimetype)
-          if (allow_types.includes(file.mimetype)) {
-            return false;
-          }else{
-            return true;
+      var i = 0;
+      for(i; i <= data.length; i++){
+        if(!types.includes(data[i].mimetype)){
+          return {
+            error: true,
+            message: `invalid file type of ${data[i].name}`
           }
-      })
-
+        }else{
+          return {
+            error: false
+          };
+        }
+      }
     }
   }else{
-    return true;
+    return {
+      error : true
+    }
   }
 }

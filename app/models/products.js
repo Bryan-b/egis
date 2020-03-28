@@ -9,13 +9,12 @@ module.exports = (sequelize, Sequelize) => {
       quantity: Sequelize.INTEGER,
       category: Sequelize.INTEGER,
       brand: Sequelize.INTEGER,
-      index_img : Sequelize.TEXT,
       mini_description: Sequelize.TEXT,
       full_description: Sequelize.TEXT,
       specifications: Sequelize.TEXT,
       discount_rate: {
-        type: Sequelize.DECIMAL,
-        defaultValue: 0.0
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       discount_status: {
         type: Sequelize.BOOLEAN,
@@ -23,11 +22,11 @@ module.exports = (sequelize, Sequelize) => {
       },
       shipping_fee: {
         type: Sequelize.INTEGER,
-        defaultValue: 0.0
+        defaultValue: 0
       },
       tax_fee: {
         type: Sequelize.INTEGER,
-        defaultValue: 0.0
+        defaultValue: 0
       },
       total_rating: {
         type: Sequelize.INTEGER,
@@ -36,6 +35,10 @@ module.exports = (sequelize, Sequelize) => {
       total_rated_users: {
         type: Sequelize.INTEGER,
         defaultValue: 0
+      },
+      visibility: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: 1
       }
     },
     {
