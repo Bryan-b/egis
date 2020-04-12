@@ -242,28 +242,46 @@ exports.createProduct = async (req, res) => {
 
 // list product
 exports.getAllProducts = async (req, res) => {
-    const page = req.query.page
+    let page = req.query.page
 
-    if(page && !util.isntOrEmptyOrNaN(page)){
-
-    }else{
-        res.status(403).send({
-            error : true,
-            message : `invalid query string` 
-        })
-    }
-    // try {
-    //     await products.findAll({
-    //         where : {
-    //             visibility : 1
-    //         },
-
-    //     })
-        
-    // } catch (error) {
-    //     res.send({
+        try{
+            if(page && isNaN(page)){
+                throw "invalid query sent"
+            }
+            if(page == undefined) page = 1;
+            // setting pagination configuration
+            let limit = dataNeed.paginate.limit;
+            let total_product_count = await products.count({ where: { visibility: 1 }});
+            let total_pages = Math.ceil(total_product_count / limit);
+            let offset = ((page - 1) * limit);
+            let countData = {
+                where : {
+                    visibility : 1
+                },
+                limit : limit
+            }
+            
+            if (offset > 0){
+                countData.offset = offset
+            }
+            await products.findAll(countData).then((data) => {
+                res.status(200).send({
+                    error : false,
+                    message : "products fetched successfully",
+                    page : page,
+                    data : data
+                })
+            })
+        } catch (error) {
+          res.send({
+            error: true,
+            message: error || "an error occurred while fetching products"
+          });
+        }
+    // }else{
+    //     res.status(403).send({
     //         error : true,
-    //         message : "an error occurred while fetching products"
+    //         message : `invalid query string sent` 
     //     })
     // }
 }
