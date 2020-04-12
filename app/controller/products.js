@@ -265,6 +265,7 @@ exports.getAllProducts = async (req, res) => {
             res.status(200).send({
                 error : false,
                 message : "products fetched successfully",
+                total_item : total_product_count,
                 page : parseInt(page),
                 total_page : total_pages, 
                 data : data
