@@ -240,7 +240,7 @@ exports.createProduct = async (req, res) => {
 
 
 
-// list product(paginate)
+// list all available product(paginate)
 exports.getAllProducts = async (req, res) => {
     let page = req.query.page
 
@@ -276,11 +276,13 @@ exports.getAllProducts = async (req, res) => {
         message: error || "an error occurred while fetching products"
         });
     }
+
+    // TODO
+    // list product by category
+    // list product by brand
+    // list product by search (findings)
 }
 
-// list product by category
-// list product by brand
-// list product by search (findings)
 // update product
 // delete product
 // add product image
