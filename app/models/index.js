@@ -15,11 +15,13 @@ db.sequelize = sequelize;
 
 // Models Import
 db.product_images = require("./product_images")(sequelize, Sequelize); // product images models
+db.product_resources = require("./product_resources")(sequelize, Sequelize);
 db.products = require("./products")(sequelize, Sequelize); // products models
-db.categories = require("./categories.js")(sequelize, Sequelize); // categories models
+db.categories = require("./categories")(sequelize, Sequelize); // categories models
 
 // // ASSOCIATION
 db.products.hasMany(db.product_images);
+db.products.hasMany(db.product_resources);
 db.product_images.belongsTo(db.products);
 
 module.exports = db;

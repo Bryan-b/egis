@@ -39,6 +39,9 @@ module.exports = (sequelize, Sequelize) => {
       visibility: {
         type: Sequelize.BOOLEAN,
         defaultValue: 1
+      },
+      demo : {
+        type : Sequelize.STRING,
       }
     },
     {
@@ -50,7 +53,7 @@ module.exports = (sequelize, Sequelize) => {
   Products.beforeCreate(function(products, options) {
     products.unique_id = util.uniqId("egis-");
     products.price = util.trimInt(products.price);
-    products.quantity = util.trimNum(products.quantity)
+    products.quantity = util.trimNum(products.quantity);
   });
 
   return Products;

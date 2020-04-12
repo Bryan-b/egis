@@ -3,7 +3,7 @@ module.exports = (app) => {
 
   let router = require("express").Router();
 
-  router.post("/product", products.createProduct); // create categories
+  router.post("/product", products.createProduct); // create product
 
   app.use("/api", router);
 };
