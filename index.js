@@ -12,14 +12,14 @@ var corsOption = {
   origin: ORIGIN
 };
 
-app.use(fileUpload());
-app.use(cors(corsOption));
-app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({
     extended: true
   })
 );
+app.use(bodyParser.json());
+app.use(fileUpload());
+app.use(cors(corsOption));
 app.use( express.static(path.join(__dirname, "app/files")));
 
 // ROUTES

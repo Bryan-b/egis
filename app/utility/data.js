@@ -19,4 +19,11 @@ exports.vidMimeTypes = [
     "application/x-mpegURL"
 ];
 
+// files sizes type
 exports.fileSizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+// pagination configuration
+exports.paginate = {
+    offset : 10,
+    limit : 10
+}

@@ -1,6 +1,7 @@
 const { products, product_images, product_resources } = require("../models");
 const util = require("../utility");
 const { ORIGIN } = require("../config");
+const dataNeed = require("../utility/data");
 
 
 exports.createProduct = async (req, res) => {
@@ -226,9 +227,9 @@ exports.createProduct = async (req, res) => {
                 })
             
         } catch (error) {
-            res.send({
+            res.status(400).send({
                 error : true,
-                message: "an error occurred creating product."
+                message: "an error occurred while creating product."
             });
         }
 
@@ -240,6 +241,32 @@ exports.createProduct = async (req, res) => {
 
 
 // list product
+exports.getAllProducts = async (req, res) => {
+    const page = req.query.page
+
+    if(page && !util.isntOrEmptyOrNaN(page)){
+
+    }else{
+        res.status(403).send({
+            error : true,
+            message : `invalid query string` 
+        })
+    }
+    // try {
+    //     await products.findAll({
+    //         where : {
+    //             visibility : 1
+    //         },
+
+    //     })
+        
+    // } catch (error) {
+    //     res.send({
+    //         error : true,
+    //         message : "an error occurred while fetching products"
+    //     })
+    // }
+}
 // list product by category
 // list product by brand
 // list product by search (findings)

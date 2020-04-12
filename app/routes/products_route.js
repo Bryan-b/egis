@@ -5,5 +5,7 @@ module.exports = (app) => {
 
   router.post("/product", products.createProduct); // create product
 
+  router.get("/product", products.getAllProducts); // get all products
+
   app.use("/api", router);
 };
