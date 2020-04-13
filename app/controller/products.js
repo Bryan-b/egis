@@ -245,7 +245,7 @@ exports.getAllProducts = async (req, res) => {
     let page = req.query.page
 
     try{
-        if(page && isNaN(page)) throw "invalid query sent"
+        if(util.isntOrEmptyOrNaN(page)) throw "invalid filter query sent"
         if(page == undefined) page = 1;
 
         // setting pagination configuration
@@ -260,13 +260,14 @@ exports.getAllProducts = async (req, res) => {
           limit: limit,
           attributes: ["id","unique_id", "name", "price", "quantity", "category", "brand", "discount_rate", "discount_status"]
         };
+        if(page > total_pages) throw "invalid page index sent"
         if(offset > 0) countData.offset = offset
         await products.findAll(countData).then((data) => {
             res.status(200).send({
                 error : false,
                 message : "products fetched successfully",
                 total_item : total_product_count,
-                page : parseInt(page),
+                page : parseInt(page) || 1,
                 total_page : total_pages, 
                 data : data
             })
