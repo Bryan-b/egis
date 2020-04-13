@@ -1,4 +1,4 @@
-const { products, product_images, product_resources } = require("../models");
+const { products, product_images, product_resources, Op } = require("../models");
 const util = require("../utility");
 const { ORIGIN } = require("../config");
 const dataNeed = require("../utility/data");
@@ -246,10 +246,14 @@ exports.createProduct = async (req, res) => {
 // list all available product(paginate)
 exports.getAllProducts = async (req, res) => {
     let page = req.query.page
+    let type = req.query.type
 
     try{
-        if(page && isNaN(page) || page == '') throw "invalid or empty filter query sent"
+        // Query parameter validation
+        if(page && isNaN(page) || page == '') throw "invalid or empty page query sent"
         if(page == undefined) page = 1;
+
+        if(type && typeof(type) == String || type == '') throw "invalid or empty type query sent";
 
         // setting pagination configuration
         let limit = dataNeed.paginate.limit;

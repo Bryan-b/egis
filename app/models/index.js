@@ -1,5 +1,5 @@
 const dbc = require("../config"); //database configuration
-const Sequelize = require("sequelize");
+const {Sequelize, Op} = require("sequelize");
 require("sequelize-hierarchy")(Sequelize);
 
 // Sequelize Initialization
@@ -12,6 +12,7 @@ const db = {};
 
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
+db.Op = Op;
 
 // Models Import
 db.product_images = require("./product_images")(sequelize, Sequelize); // product images models
