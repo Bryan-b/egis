@@ -245,19 +245,18 @@ exports.createProduct = async (req, res) => {
 
 // list all available product(paginate)
 exports.getAllProducts = async (req, res) => {
-    let {page, type, cat, brand} = req.query;
+    let {page, type} = req.query;
 
     try{
         // Query parameter validation
         if(page && isNaN(page) || page == '') throw "invalid or empty page query sent"
         if(page == undefined) page = 1;
         if(type && typeof(type) == String || type == '') throw "invalid or empty type query sent";
-        if(cat && isNaN(cat) || cat == '') throw "invalid or empty category query sent";
-        if(brand && isNaN(brand) || brand == '') throw "invalid or empty brand query sent";
+        // if(cat && isNaN(cat) || cat == '') throw "invalid or empty category query sent";
+        // if(brand && isNaN(brand) || brand == '') throw "invalid or empty brand query sent";
 
         // setting pagination configuration
         let limit = dataNeed.paginate.limit;
-        let total_product_count = await products.count({ where: { visibility: 1 }});
         let offset = ((page - 1) * limit);
         let countData = {
           where: {
@@ -279,8 +278,6 @@ exports.getAllProducts = async (req, res) => {
             };
         }
         if(offset > 0) countData.offset = offset;
-        if(cat) countData.where.category = cat;
-        if(brand) countData.where.brand = brand;
         await products.findAndCountAll(countData).then((data) => {
             res.status(200).send({
                 error : false,
@@ -297,13 +294,19 @@ exports.getAllProducts = async (req, res) => {
         message: error || "an error occurred while fetching products"
         });
     }
-
-    // TODO
-    // list product by category
-    // list product by brand
-    // list product by search (findings)
 }
 
+
+// list all available products by category
+exports.productCategories = async (req, res) => {
+    let {category} = req.params;
+    
+}
+
+// TODO
+// list product by category
+// list product by brand
+// list product by search (findings)
 // update product
 // delete product
 // add product image
