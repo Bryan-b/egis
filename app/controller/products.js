@@ -245,38 +245,50 @@ exports.createProduct = async (req, res) => {
 
 // list all available product(paginate)
 exports.getAllProducts = async (req, res) => {
-    let page = req.query.page
-    let type = req.query.type
+    let {page, type, cat, brand} = req.query;
 
     try{
         // Query parameter validation
         if(page && isNaN(page) || page == '') throw "invalid or empty page query sent"
         if(page == undefined) page = 1;
-
         if(type && typeof(type) == String || type == '') throw "invalid or empty type query sent";
+        if(cat && isNaN(cat) || cat == '') throw "invalid or empty category query sent";
+        if(brand && isNaN(brand) || brand == '') throw "invalid or empty brand query sent";
 
         // setting pagination configuration
         let limit = dataNeed.paginate.limit;
         let total_product_count = await products.count({ where: { visibility: 1 }});
-        let total_pages = Math.ceil(total_product_count / limit);
         let offset = ((page - 1) * limit);
         let countData = {
           where: {
             visibility: 1
           },
           limit: limit,
-          attributes: ["id","unique_id", "name", "price", "quantity", "category", "brand", "discount_rate", "discount_status"]
+          attributes: ["id", "unique_id", "name", "price", "quantity", "category", "brand", "discount_rate", "discount_status"]
         };
-        if(page > total_pages) throw "invalid page index sent"
-        if(offset > 0) countData.offset = offset
-        await products.findAll(countData).then((data) => {
+        if(type) {
+            countData = {
+                where: {
+                    visibility: 1,
+                    type : {
+                        [Op.substring]: type
+                    }
+                },
+                limit: limit,
+                attributes: ["id","unique_id", "name", "price", "quantity", "category", "brand", "type", "discount_rate", "discount_status"]
+            };
+        }
+        if(offset > 0) countData.offset = offset;
+        if(cat) countData.where.category = cat;
+        if(brand) countData.where.brand = brand;
+        await products.findAndCountAll(countData).then((data) => {
             res.status(200).send({
                 error : false,
                 message : "products fetched successfully",
-                total_item : total_product_count,
+                total_item : data.count,
                 page : parseInt(page) || 1,
-                total_page : total_pages, 
-                data : data
+                total_page : Math.ceil(data.count / limit), 
+                data : data.rows
             })
         })
     } catch (error) {
