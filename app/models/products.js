@@ -9,6 +9,7 @@ module.exports = (sequelize, Sequelize) => {
       quantity: Sequelize.INTEGER,
       category: Sequelize.INTEGER,
       brand: Sequelize.INTEGER,
+      type: Sequelize.STRING,
       mini_description: Sequelize.TEXT,
       full_description: Sequelize.TEXT,
       specifications: Sequelize.TEXT,

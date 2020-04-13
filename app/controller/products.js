@@ -11,6 +11,7 @@ exports.createProduct = async (req, res) => {
       quantity,
       category,
       brand,
+      type,
       mini_desc,
       full_desc,
       specs,
@@ -26,6 +27,7 @@ exports.createProduct = async (req, res) => {
     if(util.isntOrEmptyOrNaN(quantity)) return res.status(400).send({error : true, message : "product quantity required, expecting an integer value"});
     if(util.isntOrEmptyOrNaN(category)) return res.status(400).send({error : true, message : "product category required, expecting an integer value"});
     if(util.isntOrEmptyOrNaN(brand)) return res.status(400).send({error : true, message : "product brand required, expecting an integer value"});
+    if(util.isntOrEmpty(type)) return res.status(400).send({error : true, message : "product type required"});
     if(util.isntOrEmpty(mini_desc)) return res.status(400).send({error : true, message : "product mini description required"});
     if(util.isntOrEmpty(full_desc)) return res.status(400).send({error : true, message : "product full desc required"});
     if(util.isntOrEmptyOrNaN(quantity)) return res.status(400).send({error : true, message : "product quantity required, expecting an integer value"});
@@ -70,6 +72,7 @@ exports.createProduct = async (req, res) => {
             quantity,
             category,
             brand,
+            type,
             mini_description: mini_desc,
             full_description: full_desc,
             specifications: specs,
@@ -245,7 +248,7 @@ exports.getAllProducts = async (req, res) => {
     let page = req.query.page
 
     try{
-        if(util.isntOrEmptyOrNaN(page)) throw "invalid filter query sent"
+        if(page && isNaN(page) || page == '') throw "invalid or empty filter query sent"
         if(page == undefined) page = 1;
 
         // setting pagination configuration
