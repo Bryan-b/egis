@@ -303,7 +303,7 @@ exports.productCategories = async (req, res) => {
     let {page} = req.query;
     
     try {
-        if(util.isntOrEmpty(category)) throw "category cannot be empty";
+        if(category && isNaN(category || category == '')) throw "invalid category sent";
         if(page && isNaN(page) || page == '') throw "invalid or empty page query sent"
         if(page == undefined) page = 1;
 
@@ -311,7 +311,8 @@ exports.productCategories = async (req, res) => {
         let offset = ((page - 1) * limit);
         let countData = {
             where : {
-                visibility : 1
+                visibility : 1,
+                category : category
             },
             limit: limit,
             attributes: dataNeed.productData
