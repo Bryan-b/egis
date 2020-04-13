@@ -7,5 +7,7 @@ module.exports = (app) => {
 
   router.get("/product", products.getAllProducts); // get all products
 
+  router.get("/product/:category", products.productCategories); // get all products by category
+
   app.use("/api", router);
-};
+};;

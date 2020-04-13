@@ -1,4 +1,4 @@
-const { products, product_images, product_resources, Op } = require("../models");
+const { products, product_images, product_resources, categories, Op } = require("../models");
 const util = require("../utility");
 const { ORIGIN } = require("../config");
 const dataNeed = require("../utility/data");
@@ -263,7 +263,7 @@ exports.getAllProducts = async (req, res) => {
             visibility: 1
           },
           limit: limit,
-          attributes: ["id", "unique_id", "name", "price", "quantity", "category", "brand", "discount_rate", "discount_status"]
+          attributes: dataNeed.productData
         };
         if(type) {
             countData = {
@@ -274,7 +274,7 @@ exports.getAllProducts = async (req, res) => {
                     }
                 },
                 limit: limit,
-                attributes: ["id","unique_id", "name", "price", "quantity", "category", "brand", "type", "discount_rate", "discount_status"]
+                attributes: dataNeed.productData
             };
         }
         if(offset > 0) countData.offset = offset;
@@ -290,8 +290,8 @@ exports.getAllProducts = async (req, res) => {
         })
     } catch (error) {
         res.send({
-        error: true,
-        message: error || "an error occurred while fetching products"
+            error: true,
+            message: error || "an error occurred while fetching products"
         });
     }
 }
@@ -300,7 +300,40 @@ exports.getAllProducts = async (req, res) => {
 // list all available products by category
 exports.productCategories = async (req, res) => {
     let {category} = req.params;
+    let {page} = req.query;
     
+    try {
+        if(util.isntOrEmpty(category)) throw "category cannot be empty";
+        if(page && isNaN(page) || page == '') throw "invalid or empty page query sent"
+        if(page == undefined) page = 1;
+
+        let limit = dataNeed.paginate.limit;
+        let offset = ((page - 1) * limit);
+        let countData = {
+            where : {
+                visibility : 1
+            },
+            limit: limit,
+            attributes: dataNeed.productData
+        };
+        if(offset > 0) countData.offset = offset;
+        await products.findAndCountAll(countData).then((data) => {
+            res.status(200).send({
+                error : false,
+                message : "products fetched successfully",
+                total_item : data.count,
+                page : parseInt(page) || 1,
+                total_page : Math.ceil(data.count / limit), 
+                data : data.rows
+            })
+        })
+        
+    } catch (error) {
+        res.send({
+            error: true,
+            message: error || "an error occurred while fetching products"
+        });
+    }
 }
 
 // TODO

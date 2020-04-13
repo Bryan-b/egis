@@ -26,3 +26,16 @@ exports.fileSizes = ['B', 'KB', 'MB', 'GB', 'TB'];
 exports.paginate = {
     limit : 5
 }
+
+exports.productData = [
+  "id",
+  "unique_id",
+  "name",
+  "price",
+  "quantity",
+  "category",
+  "brand",
+  "type",
+  "discount_rate",
+  "discount_status"
+];
