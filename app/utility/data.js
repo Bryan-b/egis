@@ -24,7 +24,7 @@ exports.fileSizes = ['B', 'KB', 'MB', 'GB', 'TB'];
 
 // pagination configuration
 exports.paginate = {
-    limit : 5
+    limit : 3
 }
 
 exports.productData = [

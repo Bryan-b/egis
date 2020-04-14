@@ -313,38 +313,21 @@ exports.productCategories = async (req, res) => {
         // modifying product data array to suit raw query
         let q = [];
         dataNeed.productData.map(e => {q.push(`p.${e}`)})
-        let query = 'SELECT ' + [...q] + ' FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE c.`name` = ' +`"${category}"`
-        
-        await sequelize.query(query,
-        {
-            type : sequelize.QueryTypes.SELECT
-        }).then((data) => {
-            res.status(200).send({
-                error : false,
-                message : "products fetched successfully",
-                data : data
+        let query = 'SELECT ' + [...q] + ' FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE p.visibility = 1 AND c.`name` = ' + `"${category}"`;
+        let query_count = 'SELECT COUNT(*) AS count FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE p.visibility = 1 AND c.`name` = ' + `"${category}"`;
+        let opts = ' LIMIT ' + limit + ' OFFSET ' + offset
+        let count = await sequelize.query(query_count, {type : sequelize.QueryTypes.SELECT}).then(c => c[0].count)
+        await sequelize.query(query+opts, {type : sequelize.QueryTypes.SELECT})
+            .then((data) => {
+                res.status(200).send({
+                    error : false,
+                    message : "products fetched successfully",
+                    total_item : count,
+                    page : parseInt(page) || 1,
+                    total_page : Math.ceil(count / limit),
+                    data : data
+                })
             })
-        })
-        // let countData = {
-        //     where : {
-        //         visibility : 1,
-        //         category : category
-        //     },
-        //     limit: limit,
-        //     attributes: dataNeed.productData
-        // };
-        // if(offset > 0) countData.offset = offset;
-        // await products.findAndCountAll(countData).then((data) => {
-        //     res.status(200).send({
-        //         error : false,
-        //         message : "products fetched successfully",
-        //         total_item : data.count,
-        //         page : parseInt(page) || 1,
-        //         total_page : Math.ceil(data.count / limit), 
-        //         data : data.rows
-        //     })
-        // })
-        
     } catch (error) {
         res.send({
             error: true,
