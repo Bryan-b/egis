@@ -1,4 +1,4 @@
-const { products, product_images, product_resources, categories, Op } = require("../models");
+const { products, product_images, product_resources, categories, Op, sequelize, Sequelize } = require("../models");
 const util = require("../utility");
 const { ORIGIN } = require("../config");
 const dataNeed = require("../utility/data");
@@ -303,31 +303,47 @@ exports.productCategories = async (req, res) => {
     let {page} = req.query;
     
     try {
-        if(category && isNaN(category || category == '')) throw "invalid category sent";
+        if(category && category == '') throw "invalid category sent";
         if(page && isNaN(page) || page == '') throw "invalid or empty page query sent"
         if(page == undefined) page = 1;
 
         let limit = dataNeed.paginate.limit;
         let offset = ((page - 1) * limit);
-        let countData = {
-            where : {
-                visibility : 1,
-                category : category
-            },
-            limit: limit,
-            attributes: dataNeed.productData
-        };
-        if(offset > 0) countData.offset = offset;
-        await products.findAndCountAll(countData).then((data) => {
+        
+        // modifying product data array to suit raw query
+        let q = [];
+        dataNeed.productData.map(e => {q.push(`p.${e}`)})
+        let query = 'SELECT ' + [...q] + ' FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE c.`name` = ' +`"${category}"`
+        
+        await sequelize.query(query,
+        {
+            type : sequelize.QueryTypes.SELECT
+        }).then((data) => {
             res.status(200).send({
                 error : false,
                 message : "products fetched successfully",
-                total_item : data.count,
-                page : parseInt(page) || 1,
-                total_page : Math.ceil(data.count / limit), 
-                data : data.rows
+                data : data
             })
         })
+        // let countData = {
+        //     where : {
+        //         visibility : 1,
+        //         category : category
+        //     },
+        //     limit: limit,
+        //     attributes: dataNeed.productData
+        // };
+        // if(offset > 0) countData.offset = offset;
+        // await products.findAndCountAll(countData).then((data) => {
+        //     res.status(200).send({
+        //         error : false,
+        //         message : "products fetched successfully",
+        //         total_item : data.count,
+        //         page : parseInt(page) || 1,
+        //         total_page : Math.ceil(data.count / limit), 
+        //         data : data.rows
+        //     })
+        // })
         
     } catch (error) {
         res.send({
