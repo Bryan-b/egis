@@ -19,6 +19,7 @@ db.product_images = require("./product_images")(sequelize, Sequelize); // produc
 db.product_resources = require("./product_resources")(sequelize, Sequelize);
 db.products = require("./products")(sequelize, Sequelize); // products models
 db.categories = require("./categories")(sequelize, Sequelize); // categories models
+db.brands = require("./brands")(sequelize, Sequelize); // brands model
 
 // // ASSOCIATION
 db.products.hasMany(db.product_images);

@@ -315,9 +315,9 @@ exports.productCategories = async (req, res) => {
         dataNeed.productData.map(e => {q.push(`p.${e}`)})
         let query = 'SELECT ' + [...q] + ' FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE p.visibility = 1 AND c.`name` = ' + `"${category}"`;
         let query_count = 'SELECT COUNT(*) AS count FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE p.visibility = 1 AND c.`name` = ' + `"${category}"`;
-        let opts = ' LIMIT ' + limit + ' OFFSET ' + offset
+        let options = query + ' LIMIT ' + limit + ' OFFSET ' + offset
         let count = await sequelize.query(query_count, {type : sequelize.QueryTypes.SELECT}).then(c => c[0].count)
-        await sequelize.query(query+opts, {type : sequelize.QueryTypes.SELECT})
+        await sequelize.query(options, {type : sequelize.QueryTypes.SELECT})
             .then((data) => {
                 res.status(200).send({
                     error : false,
@@ -335,6 +335,48 @@ exports.productCategories = async (req, res) => {
         });
     }
 }
+
+
+// list all available products by brand
+exports.productBrand = async (req, res) => {
+    let {category, brand} = req.params;
+    let {page} = req.query;
+
+    try{
+        if(category && category == '') throw "invalid category sent";
+        if(brand && brand == '') throw "invalid brand sent";
+        if(page && isNaN(page) || page == '') throw "invalid or empty page query sent"
+        if(page == undefined) page = 1;
+
+        let limit = dataNeed.paginate.limit;
+        let offset = (page - 1) * limit;
+
+        // modifying product data array to suit raw query
+        let q = [];
+        dataNeed.productData.map(e => {q.push(`p.${e}`)})
+        let query = 'SELECT ' + [...q] + ' FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE p.visibility = 1 AND c.`name` = ' + `"${category}"`;
+        let query_count = 'SELECT COUNT(*) AS count FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE p.visibility = 1 AND c.`name` = ' + `"${category}"`;
+        let options = query + ' LIMIT ' + limit + ' OFFSET ' + offset
+        let count = await sequelize.query(query_count, {type : sequelize.QueryTypes.SELECT}).then(c => c[0].count)
+        await sequelize.query(options, {type : sequelize.QueryTypes.SELECT})
+            .then((data) => {
+                res.status(200).send({
+                    error : false,
+                    message : "products fetched successfully",
+                    total_item : count,
+                    page : parseInt(page) || 1,
+                    total_page : Math.ceil(count / limit),
+                    data : data
+                })
+            })
+    } catch (error){
+        res.send({
+            error: true,
+            message: error || "an error occurred while fetching products"
+        })
+    }
+}
+// PRODUCT BRAND ON HOLD UNTIL BRAND IS FINISHED
 
 // TODO
 // list product by category

@@ -25,6 +25,7 @@ app.use( express.static(path.join(__dirname, "app/files")));
 // ROUTES
 require("./app/routes/categories_route")(app);
 require("./app/routes/products_route")(app);
+require("./app/routes/brands_route")(app);
 
 
 
