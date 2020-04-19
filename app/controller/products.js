@@ -245,13 +245,13 @@ exports.createProduct = async (req, res) => {
 
 // list all available product(paginate)
 exports.getAllProducts = async (req, res) => {
-    let {page, type} = req.query;
+    let {page, q} = req.query;
 
     try{
         // Query parameter validation
         if(page && isNaN(page) || page == '') throw "invalid or empty page query sent"
         if(page == undefined) page = 1;
-        if(type && typeof(type) == String || type == '') throw "invalid or empty type query sent";
+        if(q && typeof(q) == String || q == '') throw "invalid or empty type query sent";
         // if(cat && isNaN(cat) || cat == '') throw "invalid or empty category query sent";
         // if(brand && isNaN(brand) || brand == '') throw "invalid or empty brand query sent";
 
@@ -265,12 +265,12 @@ exports.getAllProducts = async (req, res) => {
           limit: limit,
           attributes: dataNeed.productData
         };
-        if(type) {
+        if(q) {
             countData = {
                 where: {
                     visibility: 1,
-                    type : {
-                        [Op.substring]: type
+                    name : {
+                        [Op.substring]: q
                     }
                 },
                 limit: limit,
@@ -417,9 +417,8 @@ exports.productByBrand = async (req, res) => {
     }
 }
 
+
 // TODO
-// list product by brand
-// list product by search (findings)
 // update product
 // delete product
 // add product image
@@ -431,7 +430,3 @@ exports.productByBrand = async (req, res) => {
 // add demo video
 // update demo video
 // delete demo video
-// create brand
-// update brand
-// delete brand
-// list brand
