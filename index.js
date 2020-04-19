@@ -39,7 +39,7 @@ app.get("/resync", function(req, res) {
     }).catch((err) => {
       console.error("Unable to connect to the database:", err);
     });
-  db.sequelize.sync({
+  db.brands.sync({
       force : true
   }).then(() => {
         // db.categories.create({

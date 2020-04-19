@@ -298,7 +298,7 @@ exports.getAllProducts = async (req, res) => {
 
 
 // list all available products by category
-exports.productCategories = async (req, res) => {
+exports.productByCategory = async (req, res) => {
     let {category} = req.params;
     let {page} = req.query;
     
@@ -313,8 +313,8 @@ exports.productCategories = async (req, res) => {
         // modifying product data array to suit raw query
         let q = [];
         dataNeed.productData.map(e => {q.push(`p.${e}`)})
-        let query = 'SELECT ' + [...q] + ' FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE p.visibility = 1 AND c.`name` = ' + `"${category}"`;
-        let query_count = 'SELECT COUNT(*) AS count FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE p.visibility = 1 AND c.`name` = ' + `"${category}"`;
+        let query = 'SELECT ' + [...q] + ' FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE p.visibility = 1 AND c.is_visible = 1 AND c.`name` = ' + `"${category}"`
+        let query_count = 'SELECT COUNT(*) AS count FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE p.visibility = 1 AND c.is_visible = 1 AND c.`name` = ' + `"${category}"`
         let options = query + ' LIMIT ' + limit + ' OFFSET ' + offset
         let count = await sequelize.query(query_count, {type : sequelize.QueryTypes.SELECT}).then(c => c[0].count)
         await sequelize.query(options, {type : sequelize.QueryTypes.SELECT})
@@ -337,8 +337,8 @@ exports.productCategories = async (req, res) => {
 }
 
 
-// list all available products by brand
-exports.productBrand = async (req, res) => {
+// list all available products by category and brand
+exports.productByCategoryAndBrand = async (req, res) => {
     let {category, brand} = req.params;
     let {page} = req.query;
 
@@ -354,8 +354,8 @@ exports.productBrand = async (req, res) => {
         // modifying product data array to suit raw query
         let q = [];
         dataNeed.productData.map(e => {q.push(`p.${e}`)})
-        let query = 'SELECT ' + [...q] + ' FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE p.visibility = 1 AND c.`name` = ' + `"${category}"`;
-        let query_count = 'SELECT COUNT(*) AS count FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` WHERE p.visibility = 1 AND c.`name` = ' + `"${category}"`;
+        let query = 'SELECT ' + [...q] + ' FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` LEFT JOIN `brands` AS b ON b.`id` = p.`brand` WHERE p.visibility = 1 AND c.is_visible = 1 AND c.`name` = ' + `"${category}"` + ' AND b.`name` = ' + `"${brand}"`
+        let query_count = 'SELECT COUNT(*) AS count FROM `products` AS p LEFT JOIN `categories` AS c ON c.`id` = p.`category` LEFT JOIN `brands` AS b ON b.`id` = p.`brand` WHERE p.visibility = 1 AND c.is_visible = 1 AND c.`name` = ' + `"${category}"` + ' AND b.`name` = ' + `"${brand}"`
         let options = query + ' LIMIT ' + limit + ' OFFSET ' + offset
         let count = await sequelize.query(query_count, {type : sequelize.QueryTypes.SELECT}).then(c => c[0].count)
         await sequelize.query(options, {type : sequelize.QueryTypes.SELECT})
@@ -376,10 +376,12 @@ exports.productBrand = async (req, res) => {
         })
     }
 }
-// PRODUCT BRAND ON HOLD UNTIL BRAND IS FINISHED
+
+
+// list all products by brand
+exports.productByBrand
 
 // TODO
-// list product by category
 // list product by brand
 // list product by search (findings)
 // update product
