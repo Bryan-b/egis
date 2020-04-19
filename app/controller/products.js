@@ -243,7 +243,7 @@ exports.createProduct = async (req, res) => {
 
 
 
-// list all available product(paginate)
+// list all available product(paginate) or search
 exports.getAllProducts = async (req, res) => {
     let {page, q} = req.query;
 
@@ -251,7 +251,7 @@ exports.getAllProducts = async (req, res) => {
         // Query parameter validation
         if(page && isNaN(page) || page == '') throw "invalid or empty page query sent"
         if(page == undefined) page = 1;
-        if(q && typeof(q) == String || q == '') throw "invalid or empty type query sent";
+        if(q && typeof(q) == String) throw "invalid or empty type query sent";
         // if(cat && isNaN(cat) || cat == '') throw "invalid or empty category query sent";
         // if(brand && isNaN(brand) || brand == '') throw "invalid or empty brand query sent";
 
