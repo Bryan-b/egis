@@ -1,6 +1,5 @@
-const db = require("../models");
+const {categories} = require("../models");
 const util = require("../utility")
-const categories = db.categories;
 
 
 
@@ -11,7 +10,7 @@ exports.findCategories = async (req, res) => {
     await categories.findAll({attributes: {exclude: ['hierarchy_level']},hierarchy: true})
       .then(categories => {
         return res.status(200).send({
-          errror : false,
+          error : false,
           message: "categories fetched successfully",
           data: categories
         });
@@ -43,7 +42,7 @@ exports.findSubCategoriesById = async (req, res) => {
       }
     }).then(categories => {
       return res.status(200).send({
-        errror : false,
+        error : false,
         message: "categories fetched successfully",
         data: categories
       });
