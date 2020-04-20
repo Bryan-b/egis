@@ -457,6 +457,39 @@ exports.brandProducts = async (req, res) => {
     }
 }
 
+
+
+// delete product
+exports.deleteProduct = async (req, res) => {
+    let {id} = req.params
+
+    try {
+        if(util.isntOrEmptyOrNaN(id)) throw "invalid or empty number sent";
+
+        let isValidId = await products.findByPk(id)
+        if(isValidId !== null){
+            let delQuery = 'DELETE `products`, `product_images`, `product_resources` FROM `products` INNER JOIN `product_images` ON `products`.`id` = `product_images`.`product_id` INNER JOIN `product_resources` ON `products`.`id` = `product_resources`.`product_id` WHERE `products`.`id` =' + `"${id}"`
+            await sequelize.query(delQuery, {type : sequelize.QueryTypes.DELETE})
+                .then(data => {
+                    res.status(200).send({
+                        error: true,
+                        message: `product with id ${id} deleted successfully`,
+                        data : data
+                    })
+                })
+
+        }else{
+            throw `product with id '${id}' does not exist`;
+        }   
+    } catch (error) {
+        res.send({
+            error: true,
+            message: error || "an error occurred deleting product"
+        });
+    }
+}
+
+
 // TODO
 
 // update product
