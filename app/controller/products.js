@@ -1,4 +1,4 @@
-const { products, product_images, product_resources, categories, Op, sequelize, Sequelize } = require("../models");
+const { products, product_images, product_resources, categories, brands, Op, sequelize, Sequelize } = require("../models");
 const util = require("../utility");
 const { ORIGIN } = require("../config");
 const dataNeed = require("../utility/data");
@@ -39,6 +39,12 @@ exports.createProduct = async (req, res) => {
     if(util.isntOrEmptyOrNaN(tax_fee)) return res.status(400).send({error : true, message : "product tax fee required, expecting an integer value"});
     if(util.isntOrEmpty(req.files)) return res.status(400).send({error : true, message : "product image required"});
     
+    // Validating 'brands' and 'category'
+    let validCategoryId = await categories.findByPk(category);
+    let validBrandId = await brands.findByPk(brand);
+    if (validCategoryId === null) return res.status(400).send({error : true, message : "category selected does not exist"});
+    if (validBrandId === null) return res.status(400).send({error : true, message : `brand selected does not exist`});
+
     //Product Files
     const image_file = req.files.image_file;
     const resource_file = req.files.resource_file;
@@ -468,18 +474,16 @@ exports.deleteProduct = async (req, res) => {
 
         let isValidId = await products.findByPk(id)
         if(isValidId !== null){
-            let delQuery = 'DELETE `products`, `product_images`, `product_resources` FROM `products` INNER JOIN `product_images` ON `products`.`id` = `product_images`.`product_id` INNER JOIN `product_resources` ON `products`.`id` = `product_resources`.`product_id` WHERE `products`.`id` =' + `"${id}"`
-            await sequelize.query(delQuery, {type : sequelize.QueryTypes.DELETE})
-                .then(data => {
-                    res.status(200).send({
-                        error: true,
-                        message: `product with id ${id} deleted successfully`,
-                        data : data
-                    })
-                })
+            let delProduct = await products.destroy({where : {id}})
 
+            if(delProduct){
+                res.status(200).send({
+                    error: true,
+                    message: `product with id ${id} deleted successfully`
+                });
+            }
         }else{
-            throw `product with id '${id}' does not exist`;
+            throw `product with id ${id} does not exist`;
         }   
     } catch (error) {
         res.send({
