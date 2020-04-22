@@ -258,8 +258,6 @@ exports.getAllProducts = async (req, res) => {
         if(page && isNaN(page) || page == '') throw "invalid or empty page query sent"
         if(page == undefined) page = 1;
         if(q && typeof(q) == String) throw "invalid or empty type query sent";
-        // if(cat && isNaN(cat) || cat == '') throw "invalid or empty category query sent";
-        // if(brand && isNaN(brand) || brand == '') throw "invalid or empty brand query sent";
 
         // setting pagination configuration
         let limit = dataNeed.paginate.limit;
@@ -424,45 +422,176 @@ exports.productByBrand = async (req, res) => {
 }
 
 
-// list products by brands alone
-exports.brandProducts = async (req, res) => {
-    let {brand} = req.params;
-    let {page} = req.query;
-    
-    try {
-        if(category && category == '') throw "invalid category sent";
-        if(page && isNaN(page) || page == '') throw "invalid or empty page query sent"
-        if(page == undefined) page = 1;
+// update product
+exports.updateProduct = async (req, res) => {
+    let product_update = {}
 
-        let limit = dataNeed.paginate.limit;
-        let offset = ((page - 1) * limit);
+    try {
+        // Setting new details if available
+        let {unique_id} = req.body;
+        if(req.body.hasOwnProperty('unique_id')){
+            if(util.isntOrEmpty(unique_id)) throw 'invalid product id';
+            if(await products.findOne({where:{unique_id}}) === null) throw "product id sent does not exist";
+        }
+
+        if(req.body.hasOwnProperty('name')){
+            let {name} = req.body;
+            if(util.isntOrEmpty(name)) throw 'product name cannot be empty';
+            product_update.name = name;
+        }
         
-        // modifying product data array to suit raw query
-        let q = [];
-        dataNeed.productData.map(e => {q.push(`p.${e}`)})
-        let query = 'SELECT ' + [...q] + ' FROM `products` AS p INNER JOIN `brands` AS b ON b.`id` = p.`brand` WHERE p.visibility = 1 AND b.`name` = ' + `"${brand}"`
-        let query_count = 'SELECT COUNT(*) AS count FROM `products` AS p INNER JOIN `brands` AS b ON b.`id` = p.`brand` WHERE p.visibility = 1 AND b.`name` = ' + `"${brand}"`
-        let options = query + ' LIMIT ' + limit + ' OFFSET ' + offset
-        let count = await sequelize.query(query_count, {type : sequelize.QueryTypes.SELECT}).then(c => c[0].count)
-        await sequelize.query(options, {type : sequelize.QueryTypes.SELECT})
-            .then((data) => {
-                res.status(200).send({
-                    error : false,
-                    message : "products fetched successfully",
-                    total_item : count,
-                    page : parseInt(page) || 1,
-                    total_page : Math.ceil(count / limit),
-                    data : data
-                })
+        if(req.body.hasOwnProperty('price')){
+            let {price} = req.body;
+            if(util.isntOrEmptyOrNaN(util.trim(price))) throw 'product price cannot be empty';
+            product_update.price = price;
+        }
+
+        if(req.body.hasOwnProperty('quantity')){
+            let {quantity} = req.body;
+            if(util.isntOrEmptyOrNaN(util.trim(quantity))) throw 'product quantity cannot be empty';
+            product_update.quantity = quantity;
+        } 
+
+        if(req.body.hasOwnProperty('category')){
+            let {category} = req.body;
+            if(util.isntOrEmptyOrNaN(util.trim(category))) throw 'product category cannot be empty';
+            if(await categories.findByPk(category) === null) throw 'category id sent does not exist';
+            product_update.category = category;
+        } 
+
+        if(req.body.hasOwnProperty('brand')){
+            let {brand} = req.body;
+            if(util.isntOrEmptyOrNaN(util.trim(brand))) throw 'product brand cannot be empty';
+            if(await brands.findByPk(brand) === null) throw 'brand id sent does not exist';
+            product_update.brand = brand;
+        } 
+
+        if(req.body.hasOwnProperty('type')){
+            let {type} = req.body;
+            if(util.isntOrEmpty(util.trim(type))) throw 'product type cannot be empty';
+            product_update.type = type;
+        }
+
+        if(req.body.hasOwnProperty('mini_desc')){
+            let {mini_desc} = req.body;
+            if(util.isntOrEmpty(util.trim(mini_desc))) throw 'product mini description cannot be empty';
+            product_update.mini_description = mini_desc;
+        }
+
+        if(req.body.hasOwnProperty('full_desc')){
+            let {full_desc} = req.body;
+            if(util.isntOrEmpty(util.trim(full_desc))) throw 'product full description cannot be empty';
+            product_update.full_description = full_desc;
+        } 
+        
+        if(req.body.hasOwnProperty('specs')){
+            let {specs} = req.body;
+            if(util.isntOrEmpty(util.trim(specs))) throw 'product specifications cannot be empty';
+            product_update.specifications = specs;
+        }
+
+        if(req.body.hasOwnProperty('discount_status')){
+            let {discount_status} = req.body;
+            if(util.isntOrEmptyOrNaN(util.trim(discount_status))) throw 'discount status cannot be empty';
+            product_update.discount_status = discount_status;
+        }
+
+        if(req.body.hasOwnProperty('discount_rate')){
+            let {discount_rate} = req.body
+            if(util.isntOrEmptyOrNaN(util.trim(discount_rate))) throw 'discount rate cannot be empty';
+            product_update.discount_rate = discount_rate;
+        }
+
+        if(req.body.hasOwnProperty('shipping_fee')){
+            let {shipping_fee} = req.body;
+            if(util.isntOrEmptyOrNaN(util.trim(shipping_fee))) throw 'shipping fee cannot be empty';
+            product_update.shipping_fee = shipping_fee;
+        } 
+
+        if(req.body.hasOwnProperty('tax_fee')) {
+            let {tax_fee} = req.body;
+            if(util.isntOrEmpty(util.trim(tax_fee))) throw 'tax fee cannot be empty';
+            product_update.tax_fee = tax_fee;
+        }
+    
+        // checking if any update
+        if(Object.keys(product_update).length < 1) throw 'nothing to update';
+
+        let updateProduct = await products.update(product_update, {where : {unique_id}});
+        if(updateProduct){
+            res.status(200).send({
+                error : false,
+                message : 'product updated successfully'
             })
+        }
     } catch (error) {
-        res.send({
+        res.status(500).send({
             error: true,
-            message: error || "an error occurred while fetching products"
+            message: error || "an error occurred updating product"
         });
     }
 }
 
+
+// add product image(s)
+exports.addProductImage = async (req, res) => {
+    const {image_file} = req.files;
+    const {unique_id} = req.body;
+    
+    try {
+        if(util.isntOrEmpty(unique_id)) throw 'product unique id cannot be empty'
+        if(await products.findOne({where:{unique_id}}) === null) throw 'product unique id sent does not exist'
+
+        let valid_image = util.isntOrNotImage(image_file);
+    
+        if(valid_image.error) throw valid_image.message
+        
+        let image_file_length = image_file.length;
+        let image_array = [];
+        let productId = unique_id
+    
+        // Saving images to file storage
+        if (image_file_length == undefined){
+            // single image file
+            image_file.name = "." + image_file.name.split(".").slice(-1)[0];
+            let newName = Date.now() + "_egis_product" + image_file.name;
+            image_file.mv("./app/files/images/" + newName);
+            let product_image_url = ORIGIN + "/images/" + newName;
+            image_array.push({
+                product_image_url,
+                productId
+            });
+        }else{
+            // multiple image file
+            image_file.map(one_file => {
+                one_file.name = "." + one_file.name.split(".").slice(-1)[0];
+                let newName = Date.now() + "_egis_product" + one_file.name.replace(" ","");
+                one_file.mv(`./app/files/images/` + newName);
+                let product_image_url = ORIGIN + "/images/" + newName
+                image_array.push({
+                    product_image_url,
+                    productId
+                });
+            })
+        }
+    
+        product_images.bulkCreate(image_array).then(() => {
+            product_images.findAll({where : {productId}}).then(data => {
+                res.send({
+                    error : false,
+                    message : "product images inserted successfully",
+                    data : data
+                })
+            }) 
+        })
+        
+    } catch (error) {
+        res.send({
+            error: true,
+            message: error || "an error occurred inserting product image(s)"
+        });
+    }
+}
 
 
 // delete product
@@ -496,8 +625,6 @@ exports.deleteProduct = async (req, res) => {
 
 // TODO
 
-// update product
-// delete product
 // add product image
 // update product image
 // delete product image
