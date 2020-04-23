@@ -27,7 +27,7 @@ exports.createBrands = async (req, res) => {
         }else{
             return res.status(200).send({
                 error: true,
-                message: `brand with name ${name} already exist`
+                message: `brand with name '${name}' already exist`
             });
         }
         
