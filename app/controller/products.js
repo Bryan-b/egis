@@ -614,7 +614,10 @@ exports.addProductImage = async (req, res) => {
         }
     
         product_images.bulkCreate(image_array).then(() => {
-            product_images.findAll({where : {productId}}).then(data => {
+            product_images.findAll({
+                where : {productId},
+                attributes: { exclude: ["createdAt", "updatedAt", "productId"] }
+            }).then(data => {
                 res.send({
                     error : false,
                     message : "product images inserted successfully",
@@ -631,6 +634,50 @@ exports.addProductImage = async (req, res) => {
     }
 }
 
+
+// update product image
+exports.updateProductImage = async (req, res) => {
+    const {image_file} = req.files;
+    const {image_id} = req.body;
+    
+    try {
+        if(util.isntOrEmpty(image_id)) throw 'product image id cannot be empty'
+        if(await product_images.findOne({where:{id:image_id}}) === null) throw 'product image id sent does not exist'
+
+        let valid_image = util.isntOrNotImage(image_file);
+    
+        if(valid_image.error) throw valid_image.message
+        
+        let image_file_length = image_file.length;
+    
+        // Saving images to file storage
+        if (image_file_length != undefined) throw "only one image file is expected";
+    
+        // single image file
+        image_file.name = "." + image_file.name.split(".").slice(-1)[0];
+        let newName = Date.now() + "_egis_product" + image_file.name;
+        image_file.mv("./app/files/images/" + newName);
+        let product_image_url = ORIGIN + "/images/" + newName;
+    
+        product_images.update({product_image_url},{where:{id:image_id}}).then(() => {
+            product_images.findOne({
+                where : {id : image_id},
+                attributes: { exclude: ["createdAt", "updatedAt", "productId"] }
+            }).then(data => {
+                res.send({
+                    error : false,
+                    message : "product images updated successfully",
+                    data : data
+                })
+            }) 
+        })
+    } catch (error) {
+        res.send({
+            error: true,
+            message: error || "an error occurred updating product"
+        });
+    }
+}
 
 // delete product
 exports.deleteProduct = async (req, res) => {

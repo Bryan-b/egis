@@ -10,8 +10,9 @@ module.exports = (app) => {
   router.get("/product/:category/:brand", products.productByCategoryAndBrand); // get all products by category and brand
   router.get("/productBrand/:brand", products.productByBrand); // get all products by brand alone
   router.patch("/product", products.updateProduct); // update product information
-  router.patch("/productImage", products.addProductImage); // add product images
+  router.post("/productImage", products.addProductImage); // add product images
+  router.put("/productImage", products.updateProductImage); // update product images
   router.delete("/product/:id", products.deleteProduct); //delete product by id
 
   app.use("/api", router);
-};
+};;
