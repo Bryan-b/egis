@@ -40,7 +40,7 @@ app.get("/resync", function(req, res) {
       console.error("Unable to connect to the database:", err);
     });
   db.sequelize.sync({
-      force : true
+      // force : true
   }).then(() => {
         // db.categories.create({
         //     name : "swimming",

@@ -11,8 +11,9 @@ module.exports = (app) => {
   router.get("/productBrand/:brand", products.productByBrand); // get all products by brand alone
   router.patch("/product", products.updateProduct); // update product information
   router.post("/productImage", products.addProductImage); // add product images
-  router.put("/productImage", products.updateProductImage); // update product images
+  router.patch("/productImage", products.updateProductImage); // update product images
+  router.delete("/productImage/:id", products.deleteProductImage); // delete product images
   router.delete("/product/:id", products.deleteProduct); //delete product by id
 
   app.use("/api", router);
-};;
+};

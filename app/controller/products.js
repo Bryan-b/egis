@@ -679,6 +679,35 @@ exports.updateProductImage = async (req, res) => {
     }
 }
 
+
+// delete product image
+exports.deleteProductImage = async (req, res) => {
+    let {id} = req.params
+
+    try {
+        if(util.isntOrEmptyOrNaN(id)) throw "invalid or empty number sent";
+
+        let isValidId = await product_images.findByPk(id)
+        if(isValidId !== null){
+            let delProductImage = await product_images.destroy({where : {id}})
+
+            if(delProductImage){
+                res.status(200).send({
+                    error: true,
+                    message: `product image with id ${id} deleted successfully`
+                });
+            }
+        }else{
+            throw `product image with id ${id} does not exist`;
+        } 
+    } catch (error) {
+        res.send({
+            error: true,
+            message: error || "an error occurred deleting product image"
+        });
+    }
+}
+
 // delete product
 exports.deleteProduct = async (req, res) => {
     let {id} = req.params
