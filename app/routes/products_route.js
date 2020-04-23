@@ -14,6 +14,7 @@ module.exports = (app) => {
   router.patch("/productImage", products.updateProductImage); // update product images
   router.delete("/productImage/:id", products.deleteProductImage); // delete product images
   router.delete("/product/:id", products.deleteProduct); //delete product by id
+  router.post("/productResource", products.addProductResource); // add product resource
 
   app.use("/api", router);
 };

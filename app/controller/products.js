@@ -46,9 +46,7 @@ exports.createProduct = async (req, res) => {
     if (validBrandId === null) return res.status(400).send({error : true, message : `brand selected does not exist`});
 
     //Product Files
-    const image_file = req.files.image_file;
-    const resource_file = req.files.resource_file;
-    const demo_video = req.files.demo_video;
+    const {image_file, resource_file, demo_video} = req.files;
 
     let valid_image = util.isntOrNotImage(image_file);
     let valid_resource = util.isntOrNotDoc(resource_file);
@@ -708,6 +706,70 @@ exports.deleteProductImage = async (req, res) => {
     }
 }
 
+
+// add product resource file(s)
+exports.addProductResource = async (req, res) => {
+    const {resource_file} = req.files;
+    const {id} = req.body;
+    
+    try {
+        if(util.isntOrEmpty(id)) throw 'product unique id cannot be empty'
+        if(await products.findOne({where:{id}}) === null) throw 'product unique id sent does not exist'
+
+        let valid_image = util.isntOrNotImage(image_file);
+    
+        if(valid_image.error) throw valid_image.message
+        
+        let image_file_length = image_file.length;
+        let image_array = [];
+        let productId = id
+    
+        // Saving images to file storage
+        if (image_file_length == undefined){
+            // single image file
+            image_file.name = "." + image_file.name.split(".").slice(-1)[0];
+            let newName = Date.now() + "_egis_product" + image_file.name;
+            image_file.mv("./app/files/images/" + newName);
+            let product_image_url = ORIGIN + "/images/" + newName;
+            image_array.push({
+                product_image_url,
+                productId
+            });
+        }else{
+            // multiple image file
+            image_file.map(one_file => {
+                one_file.name = "." + one_file.name.split(".").slice(-1)[0];
+                let newName = Date.now() + "_egis_product" + one_file.name.replace(" ","");
+                one_file.mv(`./app/files/images/` + newName);
+                let product_image_url = ORIGIN + "/images/" + newName
+                image_array.push({
+                    product_image_url,
+                    productId
+                });
+            })
+        }
+    
+        product_images.bulkCreate(image_array).then(() => {
+            product_images.findAll({
+                where : {productId},
+                attributes: { exclude: ["createdAt", "updatedAt", "productId"] }
+            }).then(data => {
+                res.send({
+                    error : false,
+                    message : "product images inserted successfully",
+                    data : data
+                })
+            }) 
+        })
+        
+    } catch (error) {
+        res.send({
+            error: true,
+            message: error || "an error occurred inserting product image(s)"
+        });
+    }
+}
+
 // delete product
 exports.deleteProduct = async (req, res) => {
     let {id} = req.params
@@ -737,11 +799,9 @@ exports.deleteProduct = async (req, res) => {
 }
 
 
+
 // TODO
 
-// add product image
-// update product image
-// delete product image
 // add resource file
 // update resource file
 // delete resource file
