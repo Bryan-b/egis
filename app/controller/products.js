@@ -118,7 +118,7 @@ exports.createProduct = async (req, res) => {
                     if (image_file_length == undefined){
                         // single image file
                         image_file.name = "." + image_file.name.split(".").slice(-1)[0];
-                        let newName = Date.now() + "_egis_product" + image_file.name;
+                        let newName = uniqueId + '_' + Date.now() + image_file.name;
                         image_file.mv("./app/files/images/" + newName);
                         let product_image_url = ORIGIN + "/images/" + newName;
                         image_array.push({
@@ -129,7 +129,7 @@ exports.createProduct = async (req, res) => {
                         // multiple image file
                         image_file.map(one_file => {
                             one_file.name = "." + one_file.name.split(".").slice(-1)[0];
-                            let newName = Date.now() + "_egis_product" + one_file.name.replace(" ","");
+                            let newName = uniqueId + '_' + Date.now() + one_file.name.replace(" ","");
                             one_file.mv(`./app/files/images/` + newName);
                             let product_image_url = ORIGIN + "/images/" + newName
                             image_array.push({
@@ -150,7 +150,7 @@ exports.createProduct = async (req, res) => {
                             let r_file_size = util.fileSizeCheck(resource_file.size)
                             let r_file_ext = resource_file.name.split(".").slice(-1)[0];
                             let r_file_name = resource_file.name.split(".").slice(0, -1).join(" ");
-                            let r_new_name = r_file_name + "_" + uniqueId + Date.now() + "." + r_file_ext;
+                            let r_new_name = uniqueId + '_' + Date.now() + "." + r_file_ext;
                             resource_file.mv("./app/files/resources/" + r_new_name);
                             let resource_url = ORIGIN + "/resources/" + r_new_name;
                             resource_array.push({
@@ -166,7 +166,7 @@ exports.createProduct = async (req, res) => {
                                 let r_file_size = util.fileSizeCheck(eachFile.size)
                                 let r_file_ext = eachFile.name.split(".").slice(-1)[0];
                                 let r_file_name = eachFile.name.split(".").slice(0, -1).join(" ");
-                                let r_new_name = r_file_name + "_" + uniqueId + Date.now() + "." + r_file_ext;
+                                let r_new_name = uniqueId + '_' + Date.now() + "." + r_file_ext;
                                 eachFile.mv("./app/files/resources/" + r_new_name);
                                 let resource_url = ORIGIN + "/resources/" + r_new_name;
                                 resource_array.push({
@@ -255,7 +255,7 @@ exports.getAllProducts = async (req, res) => {
 
     try{
         // Query parameter validation
-        if(page && isNaN(page) || page == '') throw "invalid or empty page query sent"
+        if(req.body.hasOwnProperty(page) && isNaN(page) || page == '') throw "invalid or empty page query sent"
         if(page == undefined) page = 1;
         if(q && typeof(q) == String) throw "invalid or empty type query sent";
 
@@ -296,6 +296,44 @@ exports.getAllProducts = async (req, res) => {
         res.send({
             error: true,
             message: error || "an error occurred while fetching products"
+        });
+    }
+}
+
+
+// view product info
+exports.viewProduct = async (req, res) => {
+    let {id} = req.params;
+
+    try {
+        if(util.isntOrEmptyOrNaN(id)) throw 'valid product id required';
+
+        let productInfo = await products.findOne({
+            where: { id },
+            include: [
+                {
+                    model: product_images,
+                    attributes: { exclude: ["createdAt", "updatedAt", "productId"] }
+                },
+                {
+                    model: product_resources,
+                    attributes: { exclude: ["createdAt", "updatedAt", "productId"] }
+                }
+            ],
+            attributes: dataNeed.productData
+        });
+
+        if(productInfo === null) throw `product with id ${id} does not exist`;
+
+        res.status(200).send({
+            error: true,
+            message: "product info fetched successfully",
+            data : productInfo
+        })
+    } catch (error) {
+        res.send({
+            error: true,
+            message: error || "an error occurred while fetching product info"
         });
     }
 }
@@ -536,11 +574,11 @@ exports.updateProduct = async (req, res) => {
 // add product image(s)
 exports.addProductImage = async (req, res) => {
     const {image_file} = req.files;
-    const {unique_id} = req.body;
+    const {id} = req.body;
     
     try {
-        if(util.isntOrEmpty(unique_id)) throw 'product unique id cannot be empty'
-        if(await products.findOne({where:{unique_id}}) === null) throw 'product unique id sent does not exist'
+        if(util.isntOrEmpty(id)) throw 'product unique id cannot be empty'
+        if(await products.findOne({where:{id}}) === null) throw 'product unique id sent does not exist'
 
         let valid_image = util.isntOrNotImage(image_file);
     
@@ -548,7 +586,7 @@ exports.addProductImage = async (req, res) => {
         
         let image_file_length = image_file.length;
         let image_array = [];
-        let productId = unique_id
+        let productId = id
     
         // Saving images to file storage
         if (image_file_length == undefined){
