@@ -575,8 +575,8 @@ exports.addProductImage = async (req, res) => {
     const {id} = req.body;
     
     try {
-        if(util.isntOrEmpty(id)) throw 'product unique id cannot be empty'
-        if(await products.findOne({where:{id}}) === null) throw 'product unique id sent does not exist'
+        if(util.isntOrEmpty(id)) throw 'product id cannot be empty'
+        if(await products.findOne({where:{id}}) === null) throw 'product id sent does not exist'
 
         let valid_image = util.isntOrNotImage(image_file);
     
@@ -713,50 +713,62 @@ exports.addProductResource = async (req, res) => {
     const {id} = req.body;
     
     try {
-        if(util.isntOrEmpty(id)) throw 'product unique id cannot be empty'
-        if(await products.findOne({where:{id}}) === null) throw 'product unique id sent does not exist'
+        if(util.isntOrEmpty(id)) throw 'product id cannot be empty'
+        let checkProduct = await products.findByPk(id)
+        if(checkProduct === null) throw 'product id sent does not exist'
 
-        let valid_image = util.isntOrNotImage(image_file);
+        let uniqueId = checkProduct.dataValues.unique_id
+        let valid_file = util.isntOrNotDoc(resource_file);
+        let productId = id;
     
-        if(valid_image.error) throw valid_image.message
+        if(valid_file.error) throw valid_file.message;
         
-        let image_file_length = image_file.length;
-        let image_array = [];
-        let productId = id
-    
-        // Saving images to file storage
-        if (image_file_length == undefined){
-            // single image file
-            image_file.name = "." + image_file.name.split(".").slice(-1)[0];
-            let newName = Date.now() + "_egis_product" + image_file.name;
-            image_file.mv("./app/files/images/" + newName);
-            let product_image_url = ORIGIN + "/images/" + newName;
-            image_array.push({
-                product_image_url,
+        let resource_file_length = resource_file.length;
+        let resource_array = [];
+
+        if(resource_file_length == undefined){
+            // single resource file
+            let r_file_size = util.fileSizeCheck(resource_file.size)
+            let r_file_ext = resource_file.name.split(".").slice(-1)[0];
+            let r_file_name = resource_file.name.split(".").slice(0, -1).join(" ");
+            console.log("yes")
+            let r_new_name = uniqueId + '_' + Date.now() + "." + r_file_ext;
+            resource_file.mv("./app/files/resources/" + r_new_name);
+            let resource_url = ORIGIN + "/resources/" + r_new_name;
+            resource_array.push({
+                resource_name : r_file_name + '_' + uniqueId,
+                resource_type : r_file_ext,
+                resource_size : r_file_size,
+                resource_url,
                 productId
             });
         }else{
-            // multiple image file
-            image_file.map(one_file => {
-                one_file.name = "." + one_file.name.split(".").slice(-1)[0];
-                let newName = Date.now() + "_egis_product" + one_file.name.replace(" ","");
-                one_file.mv(`./app/files/images/` + newName);
-                let product_image_url = ORIGIN + "/images/" + newName
-                image_array.push({
-                    product_image_url,
+
+            resource_file.map( eachFile => {
+                let r_file_size = util.fileSizeCheck(eachFile.size)
+                let r_file_ext = eachFile.name.split(".").slice(-1)[0];
+                let r_file_name = eachFile.name.split(".").slice(0, -1).join(" ");
+                let r_new_name = uniqueId + '_' + Date.now() + "." + r_file_ext;
+                eachFile.mv("./app/files/resources/" + r_new_name);
+                let resource_url = ORIGIN + "/resources/" + r_new_name;
+                resource_array.push({
+                    resource_name : r_file_name + "-" + uniqueId,
+                    resource_type : r_file_ext,
+                    resource_size : r_file_size,
+                    resource_url,
                     productId
                 });
             })
         }
-    
-        product_images.bulkCreate(image_array).then(() => {
-            product_images.findAll({
+                console.log(resource_array);
+        product_resources.bulkCreate(resource_array).then(() => {
+            product_resources.findAll({
                 where : {productId},
                 attributes: { exclude: ["createdAt", "updatedAt", "productId"] }
             }).then(data => {
                 res.send({
                     error : false,
-                    message : "product images inserted successfully",
+                    message : "product resource file inserted successfully",
                     data : data
                 })
             }) 
@@ -765,10 +777,11 @@ exports.addProductResource = async (req, res) => {
     } catch (error) {
         res.send({
             error: true,
-            message: error || "an error occurred inserting product image(s)"
+            message: error || "an error occurred inserting product resource file"
         });
     }
 }
+
 
 // delete product
 exports.deleteProduct = async (req, res) => {
