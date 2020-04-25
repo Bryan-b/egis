@@ -689,12 +689,12 @@ exports.deleteProductImage = async (req, res) => {
         if(isValidId !== null){
             let productId = isValidId.dataValues.productId
             let countImages = await product_images.count({where:{productId}})
-            if(countImages < 7) throw 'product must have at least 1 image left, try updating image';
+            if(countImages < 2) throw 'product must have at least 1 image left, try updating image';
             let delProductImage = await product_images.destroy({where : {id}})
 
             if(delProductImage){
                 res.status(200).send({
-                    error: true,
+                    error: false,
                     message: `product image with id ${id} deleted successfully`
                 });
             }
