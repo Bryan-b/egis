@@ -687,6 +687,9 @@ exports.deleteProductImage = async (req, res) => {
 
         let isValidId = await product_images.findByPk(id)
         if(isValidId !== null){
+            let productId = isValidId.dataValues.productId
+            let countImages = await product_images.count({where:{productId}})
+            if(countImages < 7) throw 'product must have at least 1 image left, try updating image';
             let delProductImage = await product_images.destroy({where : {id}})
 
             if(delProductImage){
