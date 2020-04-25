@@ -857,7 +857,7 @@ exports.deleteProductResource = async (req, res) => {
                     message: `product resource file with id ${id} deleted successfully`
                 });
             }
-        }else{ 
+        }else{
             throw `product resource file with id ${id} does not exist`;
         } 
     } catch (error) {
