@@ -649,7 +649,7 @@ exports.updateProductImage = async (req, res) => {
         let image_file_length = image_file.length;
     
         // Saving images to file storage
-        if (image_file_length != undefined) throw "only one image file is expected";
+        if (image_file_length != undefined) throw "multiple image files not allowed";
     
         // single image file
         image_file.name = "." + image_file.name.split(".").slice(-1)[0];
@@ -734,7 +734,6 @@ exports.addProductResource = async (req, res) => {
             let r_file_size = util.fileSizeCheck(resource_file.size)
             let r_file_ext = resource_file.name.split(".").slice(-1)[0];
             let r_file_name = resource_file.name.split(".").slice(0, -1).join(" ");
-            console.log("yes")
             let r_new_name = uniqueId + '_' + Date.now() + "." + r_file_ext;
             resource_file.mv("./app/files/resources/" + r_new_name);
             let resource_url = ORIGIN + "/resources/" + r_new_name;
@@ -763,7 +762,6 @@ exports.addProductResource = async (req, res) => {
                 });
             })
         }
-                console.log(resource_array);
         product_resources.bulkCreate(resource_array).then(() => {
             product_resources.findAll({
                 where : {productId},
@@ -772,6 +770,62 @@ exports.addProductResource = async (req, res) => {
                 res.send({
                     error : false,
                     message : "product resource file inserted successfully",
+                    data : data
+                })
+            }) 
+        })
+        
+    } catch (error) {
+        res.send({
+            error: true,
+            message: error || "an error occurred inserting product resource file"
+        });
+    }
+}
+
+
+
+// update resource files
+exports.updateProductResource = async (req, res) => {
+    const {resource_file} = req.files;
+    const {id} = req.body;
+    
+    try {
+        if(util.isntOrEmpty(id)) throw 'product id cannot be empty'
+        let checkProduct = await products.findByPk(id)
+        if(checkProduct === null) throw 'product id sent does not exist'
+
+        let uniqueId = checkProduct.dataValues.unique_id
+        let valid_file = util.isntOrNotDoc(resource_file);
+        let productId = id;
+    
+        if(valid_file.error) throw valid_file.message;
+        
+        let resource_file_length = resource_file.length;
+        let resource_array = [];
+
+        if(resource_file_length != undefined) throw 'multiple resource files not allowed'
+        let r_file_size = util.fileSizeCheck(resource_file.size)
+        let r_file_ext = resource_file.name.split(".").slice(-1)[0];
+        let r_file_name = resource_file.name.split(".").slice(0, -1).join(" ");
+        let r_new_name = uniqueId + '_' + Date.now() + "." + r_file_ext;
+        resource_file.mv("./app/files/resources/" + r_new_name);
+        let resource_url = ORIGIN + "/resources/" + r_new_name;
+        resource_array.push({
+            resource_name : r_file_name + '_' + uniqueId,
+            resource_type : r_file_ext,
+            resource_size : r_file_size,
+            resource_url,
+            productId
+        });
+        product_resources.bulkCreate(resource_array).then(() => {
+            product_resources.findAll({
+                where : {productId},
+                attributes: { exclude: ["createdAt", "updatedAt", "productId"] }
+            }).then(data => {
+                res.send({
+                    error : false,
+                    message : "product resource file updated successfully",
                     data : data
                 })
             }) 
