@@ -840,6 +840,35 @@ exports.updateProductResource = async (req, res) => {
 }
 
 
+// delete product resource
+exports.deleteProductResource = async (req, res) => {
+    let {id} = req.params
+
+    try {
+        if(util.isntOrEmptyOrNaN(id)) throw "invalid or empty number sent";
+
+        let isValidId = await product_resources.findByPk(id)
+        if(isValidId !== null){
+            let delProductResource = await product_resources.destroy({where : {id}})
+
+            if(delProductResource){
+                res.status(200).send({
+                    error: false,
+                    message: `product resource file with id ${id} deleted successfully`
+                });
+            }
+        }else{
+            throw `product resource file with id ${id} does not exist`;
+        } 
+    } catch (error) {
+        res.send({
+            error: true,
+            message: error || "an error occurred deleting product resource file"
+        });
+    }
+}
+
+
 // delete product
 exports.deleteProduct = async (req, res) => {
     let {id} = req.params
